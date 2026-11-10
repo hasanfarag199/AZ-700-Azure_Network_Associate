@@ -42,33 +42,33 @@ $vnet = New-AzVirtualNetwork `
     -AddressPrefix "10.40.0.0/16" `
     -Subnet $appSubnet,$secSubnet
 
-$nsg = New-AzNetworkSecurityGroup `
-    -Name "App-NSG" `
-    -ResourceGroupName $rg `
-    -Location $location
+# $nsg = New-AzNetworkSecurityGroup `
+#     -Name "App-NSG" `
+#     -ResourceGroupName $rg `
+#     -Location $location
 
-Add-AzNetworkSecurityRuleConfig `
-    -NetworkSecurityGroup $nsg `
-    -Name "Deny-Internet-Egress" `
-    -Direction Outbound `
-    -Priority 100 `
-    -Access Deny `
-    -Protocol * `
-    -SourceAddressPrefix "10.40.0.0/24" `
-    -SourcePortRange * `
-    -DestinationAddressPrefix Internet `
-    -DestinationPortRange *
+# Add-AzNetworkSecurityRuleConfig `
+#     -NetworkSecurityGroup $nsg `
+#     -Name "Deny-Internet-Egress" `
+#     -Direction Outbound `
+#     -Priority 100 `
+#     -Access Deny `
+#     -Protocol * `
+#     -SourceAddressPrefix "10.40.0.0/24" `
+#     -SourcePortRange * `
+#     -DestinationAddressPrefix Internet `
+#     -DestinationPortRange *
 
-$nsg | Set-AzNetworkSecurityGroup
+# $nsg | Set-AzNetworkSecurityGroup
 
 
-$appSubnet = Get-AzVirtualNetworkSubnetConfig `
-    -Name "AppSubnet" `
-    -VirtualNetwork $vnet
+# $appSubnet = Get-AzVirtualNetworkSubnetConfig `
+#     -Name "AppSubnet" `
+#     -VirtualNetwork $vnet
 
-$appSubnet.NetworkSecurityGroup = $nsg
+# $appSubnet.NetworkSecurityGroup = $nsg
 
-$vnet | Set-AzVirtualNetwork
+# $vnet | Set-AzVirtualNetwork
 
 
 $rt = New-AzRouteTable `
@@ -94,24 +94,24 @@ $appSubnet.RouteTable = $rt
 
 $vnet | Set-AzVirtualNetwork
 
-$appSubnet = Get-AzVirtualNetworkSubnetConfig `
-    -Name "AppSubnet" `
-    -VirtualNetwork $vnet
+# $appSubnet = Get-AzVirtualNetworkSubnetConfig `
+#     -Name "AppSubnet" `
+#     -VirtualNetwork $vnet
 
-$secSubnet = Get-AzVirtualNetworkSubnetConfig `
-    -Name "SecSubnet" `
-    -VirtualNetwork $vnet
+# $secSubnet = Get-AzVirtualNetworkSubnetConfig `
+#     -Name "SecSubnet" `
+#     -VirtualNetwork $vnet
 
-New-AzNetworkInterface `
-    -Name "App-Srv-Nic0" `
-    -ResourceGroupName $rg `
-    -Location $location `
-    -SubnetId $appSubnet.Id `
-    -PrivateIpAddress "10.40.0.10"
+# New-AzNetworkInterface `
+#     -Name "App-Srv-Nic0" `
+#     -ResourceGroupName $rg `
+#     -Location $location `
+#     -SubnetId $appSubnet.Id `
+#     -PrivateIpAddress "10.40.0.10"
 
-New-AzNetworkInterface `
-    -Name "Fw-Nic1" `
-    -ResourceGroupName $rg `
-    -Location $location `
-    -SubnetId $secSubnet.Id `
-    -PrivateIpAddress "10.40.1.10"
+# New-AzNetworkInterface `
+#     -Name "Fw-Nic1" `
+#     -ResourceGroupName $rg `
+#     -Location $location `
+#     -SubnetId $secSubnet.Id `
+#     -PrivateIpAddress "10.40.1.10"
