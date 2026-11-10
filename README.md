@@ -1,38 +1,12 @@
-# lab1
-## Azure resources Connectivity to Internet (egress)
-1. RT is Associated to App Subnet for directing the any outbound traffic from the VM1 first to the FW before reaching any address (e.g the internet).
-2. NSG is Associated to App Subnet for restricting the outbound traffic from the VM1 since Egress is allowed by default
-```mermaid
-graph TD
-    VNET["Az-UkSth-Vnet<br/>10.40.0.0/16"]
-
-    APP["App Subnet<br/>10.40.0.0/24"]
-    SEC["Sec Subnet<br/>10.40.1.0/24"]
-
-    NSG["App-NSG <br/>10.40.0.10->0.0.0.0 * Deny"]
-    RT["App-RT <br/> 0.0.0.0->10.40.1.10"]
-    
-    NIC1["App-Srv-Nic0<br/>10.40.0.10"]
-    VM1["App-Srv-Vm"]
-
-    NIC2["Fw-Nic1<br/>10.40.1.10"]
-    FW["Fw"]
-
-
-    VNET --> APP
-    VNET --> SEC
-
-    NSG -. Associated .-> APP
-    RT -. Associated .-> APP
-
-    APP --> NIC1
-    NIC1 --> VM1
-
-    SEC --> NIC2
-    NIC2 --> FW
-
-    NET["Internet<br/>0.0.0.0/0"]
-    VM1 --> FW
-    FW --> NET
-```
-## Azure resources Connectivity from Internet (Ingress)
+# Ubuntu 24.04
+## lab1 : Azure resources Connectivity to Internet (egress)
+## lab2 : Azure resources Connectivity from Internet (Ingress)
+1. Install PowerShell 7.6.9:
+$ source /etc/os-release
+$ wget -q https://packages.microsoft.com/config/ubuntu/$VERSION_ID/packages-microsoft-prod.deb
+$ rm packages-microsoft-prod.deb
+$ sudo apt-get update
+$ sudo apt-get install -y powershell
+2. Install the Azure (Az) PowerShell module:
+$ pwsh
+$ Install-Module -Name Az -Repository PSGallery -Force
