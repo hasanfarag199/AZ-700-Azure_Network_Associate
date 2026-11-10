@@ -2,12 +2,25 @@
 graph TD
     VNET["Az-UkSth-Vnet<br/>10.40.0.0/16"]
 
-    VNET --> APP["App Subnet<br/>10.40.0.0/24"]
-    VNET --> SEC["Sec Subnet<br/>10.40.1.0/24"]
+    APP["App Subnet<br/>10.40.0.0/24"]
+    SEC["Sec Subnet<br/>10.40.1.0/24"]
 
-    APP --> NIC1["App-Srv-Nic0<br/>10.40.0.10"]
-    NIC1 --> VM1["App-Srv-Vm"]
+    NSG["App-NSG"]
 
-    SEC --> NIC2["Fw-Nic1<br/>10.40.1.10"]
-    NIC2 --> FW["Fw"]
+    NIC1["App-Srv-Nic0<br/>10.40.0.10"]
+    VM1["App-Srv-Vm"]
+
+    NIC2["Fw-Nic1<br/>10.40.1.10"]
+    FW["Fw"]
+
+    VNET --> APP
+    VNET --> SEC
+
+    NSG -. Associated .-> APP
+
+    APP --> NIC1
+    NIC1 --> VM1
+
+    SEC --> NIC2
+    NIC2 --> FW
 ```
