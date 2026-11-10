@@ -1,6 +1,6 @@
 # lab1
 ## Azure resources Connectivity to Internet (egress)
-1. RT is Associated to App Subnet for directing the outbound traffic from the VM1 first to the FW before reaching any address (e.g the internet).
+1. RT is Associated to App Subnet for directing the any outbound traffic from the VM1 first to the FW before reaching any address (e.g the internet).
 2. NSG is Associated to App Subnet for restricting the outbound traffic from the VM1 since Egress is allowed by default
 ```mermaid
 graph TD
@@ -9,7 +9,7 @@ graph TD
     APP["App Subnet<br/>10.40.0.0/24"]
     SEC["Sec Subnet<br/>10.40.1.0/24"]
 
-    NSG["App-NSG <br/>10.40.0.0 0.0.0.0 * Deny"]
+    NSG["App-NSG <br/>10.40.0.10->0.0.0.0 * Deny"]
     RT["App-RT <br/> 0.0.0.0->10.40.1.10"]
     
     NIC1["App-Srv-Nic0<br/>10.40.0.10"]
