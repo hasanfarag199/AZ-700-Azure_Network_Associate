@@ -1,7 +1,7 @@
 # lab1
 ## Azure resources Connectivity to Internet (egress)
-1. Firewall (FW) is used by Associating the route table (RT) to App Subnet to let the outbound traffic from the VM1 on to any address (e.g the internet), pass first to the FW before reaching the internet
-2. NSG is needed to restrict the outbound traffic since Egress is allowed by default [e.g 10.40.0.10 0.0.0.0 * Deny]
+1. RT is Associated to App Subnet for directing the outbound traffic from the VM1 first to the FW before reaching any address (e.g the internet).
+2. NSG is Associated to App Subnet for restricting the outbound traffic from the VM1 since Egress is allowed by default [e.g 10.40.0.10 0.0.0.0 * Deny]
 ```mermaid
 graph TD
     VNET["Az-UkSth-Vnet<br/>10.40.0.0/16"]
