@@ -12,9 +12,12 @@
 #    |
 #Internet
 
-az account list --output table
-az account set --subscription 
-az group list
+# Prequistes
+Connect-AzAccount -UseDeviceAuthentication
+Get-AzSubscription
+Set-AzContext -Subscription "Azure subscription 1"
+Get-AzResourceGroup
+
 # Resource Group
 $rg = "rg-lab1"
 $location = "uksouth"
