@@ -35,4 +35,3 @@ graph TD
     VM1 --> FW
     FW --> NET
 ```
-## Azure resources Connectivity from Internet (Ingress)
