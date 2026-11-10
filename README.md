@@ -6,7 +6,8 @@ graph TD
     SEC["Sec Subnet<br/>10.40.1.0/24"]
 
     NSG["App-NSG"]
-
+    RT["App-RT <br/> 0.0.0.0->10.40.1.10"]
+    
     NIC1["App-Srv-Nic0<br/>10.40.0.10"]
     VM1["App-Srv-Vm"]
 
@@ -17,6 +18,7 @@ graph TD
     VNET --> SEC
 
     NSG -. Associated .-> APP
+    RT -. Associated .-> APP
 
     APP --> NIC1
     NIC1 --> VM1
