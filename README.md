@@ -28,6 +28,6 @@ graph TD
     NIC2 --> FW
 
     NET["Internet<br/>0.0.0.0/0"]
-    APP --> FW
+    VM1 --> FW
     FW --> NET
 ```
