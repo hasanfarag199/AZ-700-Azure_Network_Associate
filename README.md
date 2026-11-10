@@ -10,3 +10,5 @@ $ sudo apt-get install -y powershell
 2. Install the Azure (Az) PowerShell module:
 $ pwsh
 $ Install-Module -Name Az -Repository PSGallery -Force
+sudo apt update && sudo apt install -y iputils-ping
+Test-Connection -TargetName 51.11.156.196 -IPv4
