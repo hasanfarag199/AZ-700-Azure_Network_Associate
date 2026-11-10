@@ -14,6 +14,7 @@ graph TD
     NIC2["Fw-Nic1<br/>10.40.1.10"]
     FW["Fw"]
 
+
     VNET --> APP
     VNET --> SEC
 
@@ -25,4 +26,8 @@ graph TD
 
     SEC --> NIC2
     NIC2 --> FW
+
+    NET["Internet<br/>0.0.0.0/0"]
+    APP --> FW
+    FW --> NET
 ```
