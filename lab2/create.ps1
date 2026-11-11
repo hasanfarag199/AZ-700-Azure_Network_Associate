@@ -2,16 +2,15 @@
 Connect-AzAccount -TenantId "cf8c795b-61fc-47b1-b6d7-ffeda1fb244d" -UseDeviceAuthentication
 $rg = "rg-lab1"
 $location = "uksouth"
-$appSubnet = New-AzVirtualNetworkSubnetConfig `
-    -Name "AppSubnet" `
-    -AddressPrefix "10.40.0.0/24"
-$App-Srv-Nic0 = New-AzNetworkInterface `
+$vnet = Get-AzVirtualNetwork -Name "Az-UkSth-Vnet" -ResourceGroupName $rg
+$appSubnet = Get-AzVirtualNetworkSubnetConfig -Name "AppSubnet" -VirtualNetwork $vnet
+$appSrvNic0 = New-AzNetworkInterface `
     -Name "App-Srv-Nic0" `
     -ResourceGroupName $rg `
     -Location $location `
     -SubnetId $appSubnet.Id `
     -PrivateIpAddress "10.40.0.10"
-
+# 1. public Ip address
 $appVmPip = New-AzPublicIpAddress  `
     -Name "App-Srv-Vm-Pip" `
     -ResourceGroupName $rg `
@@ -20,6 +19,60 @@ $appVmPip = New-AzPublicIpAddress  `
     -Sku Standard
 
 # associate IP to nic
-$ipconfig=$App-Srv-Nic0.IpConfigurations.Name
-$App-Srv-Nic0 | Set-AzNetworkInterfaceIpConfig -PublicIpAddress $appVmPip -Name $ipconfig
-$App-Srv-Nic0 | Set-AzNetworkInterface
+$ipconfig = $appSrvNic0.IpConfigurations.Name
+$appSrvNic0 | Set-AzNetworkInterfaceIpConfig -PublicIpAddress $appVmPip -Name $ipconfig
+$appSrvNic0 | Set-AzNetworkInterface
+
+# 2. Public Load Balancer
+$lbPublicIp = New-AzPublicIpAddress `
+    -Name "App-Srv-Lb-Pip" `
+    -ResourceGroupName $rg `
+    -Location $location `
+    -AllocationMethod Static `
+    -Sku Standard
+
+$frontendIp = New-AzLoadBalancerFrontendIpConfig `
+    -Name "loadBalancerFrontIp" `
+    -PublicIpAddress $lbPublicIp
+$backendPool = New-AzLoadBalancerBackendAddressPoolConfig -Name "lbBackendPool"
+$healthProbe = New-AzLoadBalancerProbeConfig `
+    -Name "lbHealthProbe" `
+    -Protocol Http `
+    -Port 80 `
+    -RequestPath "/" `
+    -IntervalInSeconds 15 `
+    -ProbeCount 2
+
+$lbRule = New-AzLoadBalancerRuleConfig `
+    -Name "http" `
+    -FrontendIpConfiguration $frontendIp `
+    -BackendAddressPool $backendPool `
+    -Probe $healthProbe `
+    -Protocol Tcp `
+    -FrontendPort 80 `
+    -BackendPort 80
+
+
+$lb = New-AzLoadBalancer `
+    -ResourceGroupName $rg `
+    -Name "publicAppSrvLb" `
+    -Location $location `
+    -Sku Standard `
+    -FrontendIpConfiguration $frontendIp `
+    -BackendAddressPool $backendPool `
+    -Probe $healthProbe `
+    -LoadBalancingRule $lbRule
+$appSrvNic0 = Get-AzNetworkInterface -ResourceGroupName $rg -Name "App-Srv-Nic0"
+$ipconfig = $appSrvNic0.IpConfigurations.Name
+$lbAddrPool = $lb.BackendAddressPools[0]
+# Add the NIC's IP configuration to the load balancer backend pool.
+$appSrvNic0 | Set-AzNetworkInterfaceIpConfig `
+    -LoadBalancerBackendAddressPool $lbAddrPool `
+    -Name $ipconfig
+$appSrvNic0 | Set-AzNetworkInterface
+# Or instead of multi instances, direct to specific instance with NAT
+# 2.b New-AzLoadBalancerInboundNatRuleConfig
+
+3. Azure Firewall
+
+4. Application Gateway
