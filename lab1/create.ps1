@@ -1,31 +1,6 @@
-# App-Srv-VM
- #   |
-# 10.40.0.10
-    |
-# # App Subnet
-    |
-# Route Table
-# 0.0.0.0/0 -> 10.40.1.10
- #   |
-# Firewall
-# 10.40.1.10
-#    |
-#Internet
-
-# Prequistes
-Connect-AzAccount -UseDeviceAuthentication
-Connect-AzAccount -TenantId "cf8c795b-61fc-47b1-b6d7-ffeda1fb244d" -UseDeviceAuthentication
-Get-AzSubscription
-Set-AzContext -Subscription "Azure subscription 1"
-Get-AzResourceGroup
-Get-AzContext 
-# Resource Group
+# outbound communication
 $rg = "rg-lab1"
 $location = "uksouth"
-
-New-AzResourceGroup `
-    -Name $rg `
-    -Location $location
 
 # VNet and Subnets
 $appSubnet = New-AzVirtualNetworkSubnetConfig `
@@ -160,4 +135,4 @@ $firewall = New-AzFirewall `
     -PublicIpAddress $firewallPublicIp `
     -ManagementPublicIpAddress $firewallMgmtPublicIp 
 
-$appVmPip = New-AzPublicIpAddress -Name "App-Srv-Vm-Pip" -ResourceGroupName $rg -Location $location -AllocationMethod Static -Sku Standard
+
