@@ -14,10 +14,11 @@
 
 # Prequistes
 Connect-AzAccount -UseDeviceAuthentication
+Connect-AzAccount -TenantId "cf8c795b-61fc-47b1-b6d7-ffeda1fb244d" -UseDeviceAuthentication
 Get-AzSubscription
 Set-AzContext -Subscription "Azure subscription 1"
 Get-AzResourceGroup
-
+Get-AzContext 
 # Resource Group
 $rg = "rg-lab1"
 $location = "uksouth"
@@ -158,3 +159,5 @@ $firewall = New-AzFirewall `
     -VirtualNetwork $vnet `
     -PublicIpAddress $firewallPublicIp `
     -ManagementPublicIpAddress $firewallMgmtPublicIp 
+
+$appVmPip = New-AzPublicIpAddress -Name "App-Srv-Vm-Pip" -ResourceGroupName $rg -Location $location -AllocationMethod Static -Sku Standard
