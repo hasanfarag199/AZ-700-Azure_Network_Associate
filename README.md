@@ -1,4 +1,5 @@
 # Ubuntu 24.04
+# Internet Communication
 ## lab1 : Azure resources Connectivity to Internet (egress)
 ## lab2 : Azure resources Connectivity from Internet (Ingress)
 1. Install PowerShell 7.7.0cat :
@@ -12,6 +13,8 @@ $ pwsh
 $ Install-Module -Name Az -Repository PSGallery -Force
 sudo apt update && sudo apt install -y iputils-ping
 Test-Connection -TargetName 51.11.156.196 -IPv4
+Test-NetConnection 20.108.248.142 -Port 80 #  PowerShell on Linux, not available
+curl 20.108.248.142  --connect-timeout 5 -v
 
 # Diagram
 # App-Srv-VM

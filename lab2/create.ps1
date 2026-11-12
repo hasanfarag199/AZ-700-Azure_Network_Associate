@@ -72,7 +72,37 @@ $appSrvNic0 | Set-AzNetworkInterfaceIpConfig `
 $appSrvNic0 | Set-AzNetworkInterface
 # Or instead of multi instances, direct to specific instance with NAT
 # 2.b New-AzLoadBalancerInboundNatRuleConfig
+$lbPublicIpNat = New-AzPublicIpAddress `
+    -Name "AppSrvLbPipNat" `
+    -ResourceGroupName $rg `
+    -Location $location `
+    -AllocationMethod Static `
+    -Sku Standard
 
-3. Azure Firewall
+$frontendIpNat = New-AzLoadBalancerFrontendIpConfig `
+    -Name "loadBalancerFrontIpNat" `
+    -PublicIpAddress $lbPublicIpNat
 
-4. Application Gateway
+$inboundNatRule = New-AzLoadBalancerInboundNatRuleConfig `
+                    -Name "httpToAppSrv" `
+                    -FrontendIpConfiguration $frontendIpNat `
+                    -Protocol Tcp `
+                    -FrontendPort 80 `
+                    -BackendPort 80
+$lbNat = New-AzLoadBalancer `
+            -Name "publicAppSrvLbNat" `
+            -InboundNatRule $inboundNatRule `
+            -FrontendIpConfiguration $frontendIpNat `
+            -Sku Standard `
+            -Location $location `
+            -ResourceGroupName $rg
+$appSrvNic0 = Get-AzNetworkInterface -ResourceGroupName $rg -Name "App-Srv-Nic0"
+$lbNatRule = $lbNat.InboundNatRules[0]
+$appSrvNic0IpConfig = $appSrvNic0.IpConfigurations[0].Name
+$appSrvNic0 | Set-AzNetworkInterfaceIpConfig -LoadBalancerInboundNatRule $lbNatRule -Name $appSrvNic0IpConfig
+$appSrvNic0 | Set-AzNetworkInterface
+$appSrvNic0.IpConfigurations[0].LoadBalancerInboundNatRules | Select-Object Name, Id
+# 3. Azure Firewall
+
+# 4. Application Gateway
+
