@@ -92,47 +92,15 @@ $vnet | Set-AzVirtualNetwork
 #     -SubnetId $secSubnet.Id `
 #     -PrivateIpAddress "10.40.1.10"
 
-$vnet = Get-AzVirtualNetwork -Name Az-UkSth-Vnet -ResourceGroupName $rg       
-
-$vnet.Subnets | Select-Object Name, AddressPrefix  
-
-Add-AzVirtualNetworkSubnetConfig `
-    -Name "AzureFirewallSubnet" `
-    -AddressPrefix "10.40.2.0/26" `
-    -VirtualNetwork $vnet    
-
-Add-AzVirtualNetworkSubnetConfig `
-    -Name "azureFirewallMgmtSubnet" `
-    -AddressPrefix "10.40.3.0/26" `
-    -VirtualNetwork $vnet
-
-Remove-AzVirtualNetworkSubnetConfig `
-  -Name <YourSubnetName> `
-  -VirtualNetwork <YourVnetName> | Set-AzVirtualNetwork
 
 
-$vnet | Set-AzVirtualNetwork  
+# Remove-AzVirtualNetworkSubnetConfig `
+#   -Name <YourSubnetName> `
+#   -VirtualNetwork <YourVnetName> | Set-AzVirtualNetwork
 
-$firewallPublicIp = New-AzPublicIpAddress `
-    -Name "Az-Fw-PIP" `
-    -ResourceGroupName $rg `
-    -Location $location `
-    -AllocationMethod Static  `
-    -Sku Standard
 
-$firewallMgmtPublicIp = New-AzPublicIpAddress `
-    -Name "Az-Fw-Mgmt-Pip"  `
-    -ResourceGroupName $rg `
-    -Location $location `
-    -AllocationMethod Static `
-    -Sku Standard
 
-$firewall = New-AzFirewall `
-    -Name "Az-Firewall" `
-    -ResourceGroupName $rg `
-    -Location $location `
-    -VirtualNetwork $vnet `
-    -PublicIpAddress $firewallPublicIp `
-    -ManagementPublicIpAddress $firewallMgmtPublicIp 
+
+
 
 

@@ -103,6 +103,43 @@ $appSrvNic0 | Set-AzNetworkInterfaceIpConfig -LoadBalancerInboundNatRule $lbNatR
 $appSrvNic0 | Set-AzNetworkInterface
 $appSrvNic0.IpConfigurations[0].LoadBalancerInboundNatRules | Select-Object Name, Id
 # 3. Azure Firewall
+$vnet = Get-AzVirtualNetwork -Name Az-UkSth-Vnet -ResourceGroupName $rg       
+
+Add-AzVirtualNetworkSubnetConfig `
+    -Name "AzureFirewallSubnet" `
+    -AddressPrefix "10.40.2.0/26" `
+    -VirtualNetwork $vnet    
+
+Add-AzVirtualNetworkSubnetConfig `
+    -Name "azureFirewallMgmtSubnet" `
+    -AddressPrefix "10.40.3.0/26" `
+    -VirtualNetwork $vnet
+    
+$vnet | Set-AzVirtualNetwork  
+
+$vnet.Subnets | Select-Object Name, AddressPrefix  
+
+$firewallPublicIp = New-AzPublicIpAddress `
+    -Name "Az-Fw-PIP" `
+    -ResourceGroupName $rg `
+    -Location $location `
+    -AllocationMethod Static  `
+    -Sku Standard
+
+$firewallMgmtPublicIp = New-AzPublicIpAddress `
+    -Name "Az-Fw-Mgmt-Pip"  `
+    -ResourceGroupName $rg `
+    -Location $location `
+    -AllocationMethod Static `
+    -Sku Standard
+
+$firewall = New-AzFirewall `
+    -Name "Az-Firewall" `
+    -ResourceGroupName $rg `
+    -Location $location `
+    -VirtualNetwork $vnet `
+    -PublicIpAddress $firewallPublicIp `
+    -ManagementPublicIpAddress $firewallMgmtPublicIp 
 
 # 4. Application Gateway
 
