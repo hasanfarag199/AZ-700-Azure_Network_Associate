@@ -24,7 +24,7 @@ $ipconfig = $appSrvNic0.IpConfigurations.Name
 $appSrvNic0 | Set-AzNetworkInterfaceIpConfig -PublicIpAddress $appVmPip -Name $ipconfig
 $appSrvNic0 | Set-AzNetworkInterface
 
-# 2. Public Load Balancer
+# 2. Public Load Balancer (L4)
 $lbPublicIp = New-AzPublicIpAddress `
     -Name "App-Srv-Lb-Pip" `
     -ResourceGroupName $rg `
@@ -103,7 +103,7 @@ $appSrvNic0IpConfig = $appSrvNic0.IpConfigurations[0].Name
 $appSrvNic0 | Set-AzNetworkInterfaceIpConfig -LoadBalancerInboundNatRule $lbNatRule -Name $appSrvNic0IpConfig
 $appSrvNic0 | Set-AzNetworkInterface
 $appSrvNic0.IpConfigurations[0].LoadBalancerInboundNatRules | Select-Object Name, Id
-# 3. Azure Firewall
+# 3. Azure Firewall (outbound tls inspection L4-L7, for inbound use app gw )
 $vnet = Get-AzVirtualNetwork -Name Az-UkSth-Vnet -ResourceGroupName $rg       
 
 Add-AzVirtualNetworkSubnetConfig `
@@ -142,7 +142,75 @@ $firewall = New-AzFirewall `
     -PublicIpAddress $firewallPublicIp `
     -ManagementPublicIpAddress $firewallMgmtPublicIp 
 
-# 4. Application Gateway
+# 4. Application Gateway (L7 lB and inbound tls inspection)
+$rg = "ag-rg"
+$location="eastus"
+New-AzResourceGroup -Name $rg -Location $location
+$backendSubnetConfig = New-AzVirtualNetworkSubnetConfig -Name backendSubnet -AddressPrefix 10.0.1.0/24
 
-# * 5. Forced Tunneling with VPN on azure side and FW on-premises along with route table to route any outbound traffic 
-# from azure resources to vpn to on-prem Fw before reaching the internet and could be for inbound traffic to public ip on-prem
+$agSubnetConfig = New-AzVirtualNetworkSubnetConfig -Name myAGSubnet -AddressPrefix 10.0.2.0/24
+
+$vnet = New-AzVirtualNetwork -ResourceGroupName myResourceGroupAG -Location eastus -Name myVNet -AddressPrefix 10.0.0.0/16 -Subnet $backendSubnetConfig, $agSubnetConfig
+
+$pip = New-AzPublicIpAddress -ResourceGroupName myResourceGroupAG -Location eastus -Name myAGPublicIPAddress -AllocationMethod Static -Sku Standard
+$vnet = Get-AzVirtualNetwork -ResourceGroupName myResourceGroupAG -Name myVNet
+
+$subnet=$vnet.Subnets[1]
+
+$gipconfig = New-AzApplicationGatewayIPConfiguration -Name myAGIPConfig -Subnet $subnet
+
+$fipconfig = New-AzApplicationGatewayFrontendIPConfig -Name myAGFrontendIPConfig -PublicIPAddress $pip
+
+$frontendport = New-AzApplicationGatewayFrontendPort -Name myFrontendPort -Port 80
+
+$defaultPool = New-AzApplicationGatewayBackendAddressPool `
+  -Name appGatewayBackendPool
+
+$poolSettings = New-AzApplicationGatewayBackendHttpSettings `
+  -Name myPoolSettings `
+  -Port 80 `
+  -Protocol Http `
+  -CookieBasedAffinity Enabled `
+  -RequestTimeout 120
+
+$defaultlistener = New-AzApplicationGatewayHttpListener `
+  -Name mydefaultListener `
+  -Protocol Http `
+  -FrontendIPConfiguration $fipconfig `
+  -FrontendPort $frontendport
+
+$frontendRule = New-AzApplicationGatewayRequestRoutingRule `
+  -Name rule1 `
+  -RuleType Basic `
+  -Priority 1000 `
+  -HttpListener $defaultlistener `
+  -BackendAddressPool $defaultPool `
+  -BackendHttpSettings $poolSettings
+
+$sku = New-AzApplicationGatewaySku `
+  -Name WAF_v2 `
+  -Tier WAF_v2 `
+  -Capacity 2
+
+$policySetting = New-AzApplicationGatewayFirewallPolicySetting `
+   -Mode Prevention -State Enabled `
+   -MaxRequestBodySizeInKb 100 -MaxFileUploadInMb 256
+
+$wafPolicy = New-AzApplicationGatewayFirewallPolicy -Name wafpolicyNew -ResourceGroup myResourceGroupAG `
+   -Location $location -PolicySetting $PolicySetting
+
+$appgw = New-AzApplicationGateway `
+  -Name myAppGateway `
+  -ResourceGroupName myResourceGroupAG `
+  -Location eastus `
+  -BackendAddressPools $defaultPool `
+  -BackendHttpSettingsCollection $poolSettings `
+  -FrontendIpConfigurations $fipconfig `
+  -GatewayIpConfigurations $gipconfig `
+  -FrontendPorts $frontendport `
+  -HttpListeners $defaultlistener `
+  -RequestRoutingRules $frontendRule `
+  -Sku $sku `
+  -FirewallPolicy $wafPolicy
+
+  # hub and spoke architecture

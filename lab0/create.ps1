@@ -30,6 +30,13 @@ $vmConfig = Add-AzVMNetworkInterface -VM $vmConfig -Id $nic.Id
     
 $vm = New-AzVM -ResourceGroupName $rg -Location $location -VM $vmConfig
 
+az vm extension set `
+  --publisher Microsoft.Azure.Extensions `
+  --version 2.0 `
+  --name CustomScript `
+  --resource-group $rg `
+  --vm-name $vmName `
+  --settings '{ "fileUris": ["https://raw.githubusercontent.com/Azure/azure-docs-powershell-samples/master/application-gateway/iis/install_nginx.sh"], "commandToExecute": "./install_nginx.sh" }'
 
 # Get-AzSubscription -SubscriptionId "30314159-ed87-435e-928a-e8b23f871383" | Format-List Name, Id, TenantId, State
 # Get-AzResourceGroup -Name $rg | Select-Object ResourceGroupName, Location, ProvisioningState

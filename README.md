@@ -45,3 +45,5 @@ $location = "uksouth"
 New-AzResourceGroup `
     -Name $rg `
     -Location $location
+
+# nsg is only for ip filtering (l3 ip address - port is L4) while fw (or nva) is for url filtering/http l7
