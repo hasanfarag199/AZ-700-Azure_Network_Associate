@@ -37,3 +37,7 @@ $vm = New-AzVM -ResourceGroupName $rg -Location $location -VM $vmConfig
 # Set-AzContext -SubscriptionId "30314159-ed87-435e-928a-e8b23f871383"   
 # Get-AzVMImageOffer -Location $location -PublisherName "Canonical" | Select-Object -ExpandProperty Offer
 # Get-AzVMImageSku -Location $location -PublisherName "Canonical"  -Offer "0001-com-ubuntu-server-jammy" | Select-Object -ExpandProperty Skus
+# MyIP
+# (Invoke-RestMethod -Uri "https://api.ipify.org").Trim()
+# 156.176.135.226
+# Remove-AzFirewall -Name "Az-Firewall" -ResourceGroupName "rg-lab1"  -Force   
