@@ -1,4 +1,5 @@
 # outbound communication
+# vnet, subnet, nic, nsg, nsg rules, route table
 $rg = "rg-lab1"
 $location = "uksouth"
 

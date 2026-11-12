@@ -1,4 +1,5 @@
 # inbonud communication
+# load balancer (backend pool and NAT), firewall, application gateway 
 Connect-AzAccount -TenantId "cf8c795b-61fc-47b1-b6d7-ffeda1fb244d" -UseDeviceAuthentication
 $rg = "rg-lab1"
 $location = "uksouth"
@@ -114,7 +115,7 @@ Add-AzVirtualNetworkSubnetConfig `
     -Name "azureFirewallMgmtSubnet" `
     -AddressPrefix "10.40.3.0/26" `
     -VirtualNetwork $vnet
-    
+
 $vnet | Set-AzVirtualNetwork  
 
 $vnet.Subnets | Select-Object Name, AddressPrefix  
