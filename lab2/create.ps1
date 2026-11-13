@@ -146,71 +146,73 @@ $firewall = New-AzFirewall `
 $rg = "ag-rg"
 $location="eastus"
 New-AzResourceGroup -Name $rg -Location $location
-$backendSubnetConfig = New-AzVirtualNetworkSubnetConfig -Name backendSubnet -AddressPrefix 10.0.1.0/24
+$backendSubnetConfig = New-AzVirtualNetworkSubnetConfig -Name backendSubnetConfig -AddressPrefix 10.0.1.0/24
 
-$agSubnetConfig = New-AzVirtualNetworkSubnetConfig -Name myAGSubnet -AddressPrefix 10.0.2.0/24
+$agSubnetConfig = New-AzVirtualNetworkSubnetConfig -Name agSubnetConfig -AddressPrefix 10.0.2.0/24
 
-$vnet = New-AzVirtualNetwork -ResourceGroupName myResourceGroupAG -Location eastus -Name myVNet -AddressPrefix 10.0.0.0/16 -Subnet $backendSubnetConfig, $agSubnetConfig
+$rg = "ag-rg"
+$location="eastus"
+$agVnet = New-AzVirtualNetwork -ResourceGroupName $rg -Location eastus -Name agVnet -AddressPrefix 10.0.0.0/16 -Subnet $backendSubnetConfig, $agSubnetConfig
 
-$pip = New-AzPublicIpAddress -ResourceGroupName myResourceGroupAG -Location eastus -Name myAGPublicIPAddress -AllocationMethod Static -Sku Standard
-$vnet = Get-AzVirtualNetwork -ResourceGroupName myResourceGroupAG -Name myVNet
+$agPip = New-AzPublicIpAddress -ResourceGroupName $rg -Location eastus -Name agPublicIPAddress -AllocationMethod Static -Sku Standard
 
-$subnet=$vnet.Subnets[1]
+$agVnet = Get-AzVirtualNetwork -ResourceGroupName $rg -Name agVnet
+$agPip = Get-AzPublicIpAddress -ResourceGroupName $rg -Name agPip
 
-$gipconfig = New-AzApplicationGatewayIPConfiguration -Name myAGIPConfig -Subnet $subnet
+$agSubnet=$agVnet.Subnets[1]
 
-$fipconfig = New-AzApplicationGatewayFrontendIPConfig -Name myAGFrontendIPConfig -PublicIPAddress $pip
+$agIp = New-AzApplicationGatewayIPConfiguration -Name agIpConfig -Subnet $agSubnet
 
-$frontendport = New-AzApplicationGatewayFrontendPort -Name myFrontendPort -Port 80
+$agFrontIP = New-AzApplicationGatewayFrontendIPConfig -Name agFrontendIPConfig -PublicIPAddress $agPip
 
-$defaultPool = New-AzApplicationGatewayBackendAddressPool `
+$agFrontPort = New-AzApplicationGatewayFrontendPort -Name agFrontendPort -Port 80
+
+$agPool = New-AzApplicationGatewayBackendAddressPool `
   -Name appGatewayBackendPool
 
-$poolSettings = New-AzApplicationGatewayBackendHttpSettings `
-  -Name myPoolSettings `
+$agPoolSettings = New-AzApplicationGatewayBackendHttpSettings `
+  -Name agPoolSettings `
   -Port 80 `
   -Protocol Http `
   -CookieBasedAffinity Enabled `
   -RequestTimeout 120
 
-$defaultlistener = New-AzApplicationGatewayHttpListener `
-  -Name mydefaultListener `
+$agListener = New-AzApplicationGatewayHttpListener `
+  -Name agDefaultListener `
   -Protocol Http `
-  -FrontendIPConfiguration $fipconfig `
-  -FrontendPort $frontendport
+  -FrontendIPConfiguration $agFrontIP `
+  -FrontendPort $agFrontPort
 
 $frontendRule = New-AzApplicationGatewayRequestRoutingRule `
   -Name rule1 `
   -RuleType Basic `
   -Priority 1000 `
-  -HttpListener $defaultlistener `
-  -BackendAddressPool $defaultPool `
-  -BackendHttpSettings $poolSettings
+  -HttpListener $agListener `
+  -BackendAddressPool $agPool `
+  -BackendHttpSettings $agPoolSettings
 
 $sku = New-AzApplicationGatewaySku `
-  -Name WAF_v2 `
-  -Tier WAF_v2 `
-  -Capacity 2
+  -Name Basic `
+  -Tier Basic `
+  -Capacity 1
 
-$policySetting = New-AzApplicationGatewayFirewallPolicySetting `
-   -Mode Prevention -State Enabled `
-   -MaxRequestBodySizeInKb 100 -MaxFileUploadInMb 256
+# $policySetting = New-AzApplicationGatewayFirewallPolicySetting `
+#    -Mode Prevention -State Enabled `
+#    -MaxRequestBodySizeInKb 100 -MaxFileUploadInMb 256
 
-$wafPolicy = New-AzApplicationGatewayFirewallPolicy -Name wafpolicyNew -ResourceGroup myResourceGroupAG `
-   -Location $location -PolicySetting $PolicySetting
+# $wafPolicy = New-AzApplicationGatewayFirewallPolicy -Name wafpolicyNew -ResourceGroup myResourceGroupAG `
+#    -Location $location -PolicySetting $PolicySetting
 
-$appgw = New-AzApplicationGateway `
-  -Name myAppGateway `
-  -ResourceGroupName myResourceGroupAG `
-  -Location eastus `
-  -BackendAddressPools $defaultPool `
-  -BackendHttpSettingsCollection $poolSettings `
-  -FrontendIpConfigurations $fipconfig `
-  -GatewayIpConfigurations $gipconfig `
-  -FrontendPorts $frontendport `
-  -HttpListeners $defaultlistener `
+$appGw = New-AzApplicationGateway `
+  -Name appGw `
+  -ResourceGroupName $rg `
+  -Location $location `
+  -BackendAddressPools $agPool `
+  -BackendHttpSettingsCollection $agPoolSettings `
+  -FrontendIpConfigurations $agFrontIP `
+  -GatewayIpConfigurations $agIp `
+  -FrontendPorts $agFrontPort `
+  -HttpListeners $agListener `
   -RequestRoutingRules $frontendRule `
   -Sku $sku `
-  -FirewallPolicy $wafPolicy
-
-  # hub and spoke architecture
+#   -FirewallPolicy $wafPolicy
