@@ -216,3 +216,10 @@ $appGw = New-AzApplicationGateway `
   -RequestRoutingRules $frontendRule `
   -Sku $sku `
 #   -FirewallPolicy $wafPolicy
+
+# subnet Delegation
+$delegation00 = New-AzDelegation -ServiceName "Microsoft.Network/applicationGateways" -Name "subnet00Delegation"
+$vnet = Get-AzVirtualNetwork -Name "agVnet" -ResourceGroupName "ag-rg"
+$subnet00 = Get-AzVirtualNetworkSubnetConfig -Name "agSubnet" -VirtualNetwork $vnet
+$subnet00.Delegations.Add($delegation00)
+Set-AzVirtualNetwork -VirtualNetwork $vnet
