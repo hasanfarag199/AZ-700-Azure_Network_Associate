@@ -100,8 +100,49 @@ $vnet | Set-AzVirtualNetwork
 #   -VirtualNetwork <YourVnetName> | Set-AzVirtualNetwork
 
 
+$asg = New-AzApplicationSecurityGroup -ResourceGroupName "az700-rg"-Name "asg01" -Location "East US"
+$nsg = New-AzNetworkSecurityGroup -ResourceGroupName "az700-rg" -Name "nsg01" -Location "East US"
+$asg = Get-AzApplicationSecurityGroup -ResourceGroupName az700-rg
+$nsg = Get-AzNetworkSecurityGroup -ResourceGroupName az700-rg
+$nsg | Add-AzNetworkSecurityRuleConfig -Name "Allow-HTTPS-Inbound" `
+    -Description "Allow inbound HTTPS traffic" `
+    -Access "Allow" `
+    -Protocol "Tcp" `
+    -Direction "Inbound" `
+    -Priority 100 `
+    -SourceAddressPrefix "Internet" `
+    -SourcePortRange "*" `
+    -DestinationApplicationSecurityGroup $asg `
+    -DestinationPortRange 443
 
+# 4. Update the NSG in Azure to apply the rule
+$nsg | Set-AzNetworkSecurityGroup
 
+# 3. Create a Subnet configuration in memory
+$subnet01 = New-AzVirtualNetworkSubnetConfig -Name "subnet01" -AddressPrefix "10.0.0.0/24"
 
+# 4. Create the Virtual Network with the Subnet attached
+$vnet = New-AzVirtualNetwork -ResourceGroupName az700-rg `
+                              -Location eastus `
+                             -Name vnet01 `   
+                              -AddressPrefix "10.0.0.0/16" `
+                              -Subnet $subnet01
 
+# 5. Create the Network Interface Card (NIC) inside the Subnet
 
+$nic01 = New-AzNetworkInterface `
+  -Name "nic01" `
+  -ResourceGroupName "az700-rg" `
+  -Location "eastus" `
+  -SubnetId $vnet.Subnets[0].Id `
+  -ApplicationSecurityGroupId $asg.Id
+
+# 6. Update the subnet configuration in memory with the NSG
+Set-AzVirtualNetworkSubnetConfig `
+    -Name $subnet01.Name `
+    -VirtualNetwork $vnet `
+    -AddressPrefix $subnet01.AddressPrefix `
+    -NetworkSecurityGroup $nsg
+
+# 7. Commit the updated configuration back to Azure
+$vnet | Set-AzVirtualNetwork
