@@ -161,17 +161,6 @@ $vnet = Get-AzVirtualNetwork -Name vnet01 -ResourceGroupName az700-rg
 $nw = Get-AzNetworkWatcher -Location eastus
 
 # Create the VNet Flow Log
-$flowlog01 = Set-AzNetworkWatcherConfigFlowLog `
-  -NetworkWatcher $nw `
-  -Name flowlog01 `
-  -TargetResourceId $vnet.Id `
-  -StorageId $sa.Id `
-  -EnableFlowLog $true `
-  -FormatType Json `
-  -FormatVersion 2 `
-  -EnableRetention $true `
-  -RetentionInDays 30
-
  $flowlog01 = New-AzNetworkWatcherFlowLog `
   -Name "vnet01-flowlog" `
   -NetworkWatcherName $nw.Name `
