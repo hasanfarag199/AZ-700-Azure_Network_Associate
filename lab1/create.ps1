@@ -169,3 +169,54 @@ $nw = Get-AzNetworkWatcher -Location eastus
   -StorageId $sa.Id `
   -Enabled $true `
   -FormatVersion 2
+
+# create new network watcher
+$nw = New-AzNetworkWatcher `
+    -Name "nw" `
+    -ResourceGroupName  "az700-rg" `
+    -Location "EastUS"
+
+# Test the flow of traffic from a VM to a remote IP address and port
+# Test-AzNetworkWatcherIPFlow `
+#     -Location $Location `
+#     -TargetVirtualMachineId $vm.Id `
+#     -TargetNetworkInterfaceId $nicId `
+#     -Direction "Inbound" `
+#     -Protocol "TCP" `
+#     -LocalIPAddress "10.0.0.4" `
+#     -LocalPort "80" `
+#     -RemoteIPAddress "10.10.10.10" `
+#     -RemotePort "60000"
+# inbound Test
+# Allow-HTTPS-Inbound 100
+$nic0 = Get-AzNetworkInterface  
+$profile = New-AzNetworkWatcherNetworkConfigurationDiagnosticProfile `
+    -Direction "Inbound" `
+    -Protocol "TCP" `
+    -Source "8.8.8.8" `
+    -Destination $nic0.IpConfigurations[0].PrivateIpAddress `
+    -DestinationPort "443"
+
+# Run diagnostics directly against the NIC ID
+Invoke-AzNetworkWatcherNetworkConfigurationDiagnostic `
+    -NetworkWatcher $nw `
+    -TargetResourceId $nic.Id `
+    -Profile $profile
+# outbound Test
+# nsg
+#  65001 AllowInternetOutBound
+$nic0 = Get-AzNetworkInterface
+$nw = Get-AzNetworkWatcher  
+$profile = New-AzNetworkWatcherNetworkConfigurationDiagnosticProfile `
+    -Direction "Outbound" `
+    -Protocol "TCP" `
+    -Source $nic.IpConfigurations[0].PrivateIpAddress `
+    -Destination "8.8.8.8" `
+    -DestinationPort "443"
+
+# Run diagnostics directly against the NIC ID
+Invoke-AzNetworkWatcherNetworkConfigurationDiagnostic `
+    -NetworkWatcher $nw `
+    -TargetResourceId $nic.Id `
+    -Profile $profile
+# not associated to any virtual machine.
