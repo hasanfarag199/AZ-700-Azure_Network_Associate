@@ -146,3 +146,37 @@ Set-AzVirtualNetworkSubnetConfig `
 
 # 7. Commit the updated configuration back to Azure
 $vnet | Set-AzVirtualNetwork
+
+# 8. Vnet Flow Logs
+$uniqueName = "az700sa" + (Get-Random -Minimum 10000 -Maximum 99999)
+
+$sa = New-AzStorageAccount `
+  -Name $uniqueName `
+  -Location eastus `
+  -ResourceGroupName az700-rg `
+  -SkuName Standard_LRS `
+  -Kind StorageV2
+
+$vnet = Get-AzVirtualNetwork -Name vnet01 -ResourceGroupName az700-rg
+$nw = Get-AzNetworkWatcher -Location eastus
+
+# Create the VNet Flow Log
+$flowlog01 = Set-AzNetworkWatcherConfigFlowLog `
+  -NetworkWatcher $nw `
+  -Name flowlog01 `
+  -TargetResourceId $vnet.Id `
+  -StorageId $sa.Id `
+  -EnableFlowLog $true `
+  -FormatType Json `
+  -FormatVersion 2 `
+  -EnableRetention $true `
+  -RetentionInDays 30
+
+ $flowlog01 = New-AzNetworkWatcherFlowLog `
+  -Name "vnet01-flowlog" `
+  -NetworkWatcherName $nw.Name `
+  -ResourceGroupName $nw.ResourceGroupName `
+  -TargetResourceId $vnet.Id `
+  -StorageId $sa.Id `
+  -Enabled $true `
+  -FormatVersion 2
