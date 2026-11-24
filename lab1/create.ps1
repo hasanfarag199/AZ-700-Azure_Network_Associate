@@ -220,3 +220,68 @@ Invoke-AzNetworkWatcherNetworkConfigurationDiagnostic `
     -TargetResourceId $nic.Id `
     -Profile $profile
 # not associated to any virtual machine.
+
+# 1. Define the features you want to manage (Connectivity, SecurityAdmin, Routing)
+$access = @("connectivity", "securityAdmin", "routing")
+# 2. Define the management scope (subscriptions or management groups)
+$subId = (Get-AzContext).Subscription.Id
+$scope = New-AzNetworkManagerScope -Subscription "/subscriptions/$subId"
+# 3. Create the Virtual Network Manager instance
+$avnmParams = @{
+    Name                      = "az700-vnm"
+    ResourceGroupName         = "az700-rg"
+    Location                  = "EastUS"
+    NetworkManagerScope       = $scope
+    NetworkManagerScopeAccess = $access
+}
+$networkManager = New-AzNetworkManager @avnmParams
+
+$netGroup1 = New-AzNetworkManagerGroup `
+  -ResourceGroupName "az700-rg" `
+  -NetworkManagerName "az700-vnm" `
+  -Name "vnetGroup1" `
+  -MemberType "VirtualNetwork"
+
+$netGroup2 = New-AzNetworkManagerGroup `
+  -ResourceGroupName "az700-rg" `
+  -NetworkManagerName "az700-vnm" `
+  -Name "vnetGroup2" `
+  -MemberType "VirtualNetwork"
+
+$netGroup3 = New-AzNetworkManagerGroup `
+  -ResourceGroupName "az700-rg" `
+  -NetworkManagerName "az700-vnm" `
+  -Name "vnetGroup3" `
+  -MemberType "VirtualNetwork"
+
+$avnmGroupItem1 = New-AzNetworkManagerConnectivityGroupItem `
+  -NetworkGroupId $netGroup1.Id `
+  -GroupConnectivity DirectlyConnected `
+  -IsGlobal 
+$avnmGroupItem2 = New-AzNetworkManagerConnectivityGroupItem `
+  -NetworkGroupId $netGroup2.Id `
+  -GroupConnectivity DirectlyConnected `
+  -IsGlobal 
+$avnmGroupItem3 = New-AzNetworkManagerConnectivityGroupItem `
+  -NetworkGroupId $netGroup3.Id `
+  -GroupConnectivity DirectlyConnected `
+  -IsGlobal 
+$avnmGroup = @($avnmGroupItem1, $avnmGroupItem2, $avnmGroupItem3)
+$config = New-AzNetworkManagerConnectivityConfiguration `
+ -NetworkManagerName az700-vnm `
+  -ConnectivityTopology Mesh `
+  -Name fullMesh1 `
+  -ResourceGroupName az700-rg `
+  -AppliesToGroup $avnmGroup
+
+# deploy the configuration to the network manager
+$vnmConnConfig = Get-AzNetworkManagerConnectivityConfiguration `
+ -NetworkManagerName az700-vnm `
+ -ResourceGroupName az700-rg
+
+Deploy-AzNetworkManagerCommit `
+    -Name az700-vnm `
+    -ResourceGroupName az700-rg `
+    -TargetLocation eastus `
+    -ConfigurationId $vnmConnConfig.Id `
+    -CommitType "Connectivity"
