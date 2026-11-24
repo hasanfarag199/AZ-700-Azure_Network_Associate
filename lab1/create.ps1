@@ -285,3 +285,14 @@ Deploy-AzNetworkManagerCommit `
     -TargetLocation eastus `
     -ConfigurationId $vnmConnConfig.Id `
     -CommitType "Connectivity"
+
+Remove-AzNetworkManagerConnectivityConfiguration `
+    -Name fullMesh1 `
+    -NetworkManagerName az700-vnm `
+    -ResourceGroupName az700-rg
+
+Remove-AzNetworkManagerGroup `
+    -Name vnetGroup1 `
+    -NetworkManagerName az700-vnm `
+    -ResourceGroupName az700-rg `
+    -ForceDelete
